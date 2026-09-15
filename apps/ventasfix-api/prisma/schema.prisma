@@ -48,3 +48,14 @@ model Producto {
   stock_bajo      Int
   stock_alto      Int
 }
+
+model Cliente {
+  id              Int    @id @default(autoincrement())
+  rut_empresa     String @unique
+  rubro           String
+  razon_social    String
+  telefono        String
+  direccion       String
+  nombre_contacto String
+  email_contacto  String
+}
