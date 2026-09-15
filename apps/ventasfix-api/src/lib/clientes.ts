@@ -11,20 +11,26 @@ export class ConflictError extends Error {
   }
 }
 
-const requiredString = (label: string) => z.string().trim().min(1, `${label} es requerido`);
+const requiredString = (label: string, maxLength?: number) => {
+  let schema = z.string().trim().min(1, `${label} es requerido`);
+  if (maxLength) {
+    schema = schema.max(maxLength, `${label} no puede superar ${maxLength} caracteres`);
+  }
+  return schema;
+};
 
-const rutEmpresaField = requiredString("El rut_empresa")
+const rutEmpresaField = requiredString("El rut_empresa", 12)
   .refine(isValidRut, "RUT inválido (dígito verificador no coincide)")
   .transform((value) => normalizeRut(value) as string);
 
 export const clienteInputSchema = z.object({
   rut_empresa: rutEmpresaField,
-  rubro: requiredString("El rubro"),
-  razon_social: requiredString("La razón social"),
+  rubro: requiredString("El rubro", 100),
+  razon_social: requiredString("La razón social", 150),
   telefono: requiredString("El teléfono"),
-  direccion: requiredString("La dirección"),
-  nombre_contacto: requiredString("El nombre de contacto"),
-  email_contacto: requiredString("El email de contacto").email("Email inválido"),
+  direccion: requiredString("La dirección", 200),
+  nombre_contacto: requiredString("El nombre de contacto", 100),
+  email_contacto: requiredString("El email de contacto", 150).email("Email inválido"),
 });
 
 export type ClienteInput = z.infer<typeof clienteInputSchema>;
