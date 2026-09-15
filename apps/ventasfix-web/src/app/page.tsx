@@ -35,9 +35,16 @@ export default async function Home() {
     <main className="container py-5">
       <div className="row justify-content-center">
         <div className="col-12 col-md-6">
-          <h1 className="h3 mb-4 fw-bold" style={{ color: "#1E3A5F" }}>
-            VentasFix
-          </h1>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h1 className="h3 mb-0 fw-bold" style={{ color: "#1E3A5F" }}>
+              VentasFix
+            </h1>
+            <form action="/api/logout" method="POST">
+              <button type="submit" className="btn btn-outline-secondary btn-sm">
+                Cerrar sesión
+              </button>
+            </form>
+          </div>
 
           <div className="card shadow-sm">
             <div className="card-body">
