@@ -25,3 +25,25 @@ export async function forwardToApi(
   const data = await apiRes.json().catch(() => ({}));
   return NextResponse.json(data, { status: apiRes.status });
 }
+
+/**
+ * Reenvía un FormData (subida de imagen) tal cual — sin fijar
+ * Content-Type: fetch lo autogenera junto con un boundary nuevo al
+ * serializar el FormData. Copiar el Content-Type de la request
+ * original rompería el parseo (el boundary no matchea el body
+ * reserializado).
+ */
+export async function forwardMultipartToApi(
+  path: string,
+  session: Session,
+  formData: FormData,
+): Promise<NextResponse> {
+  const apiRes = await fetch(`${process.env.API_URL}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.token}` },
+    body: formData,
+  });
+
+  const data = await apiRes.json().catch(() => ({}));
+  return NextResponse.json(data, { status: apiRes.status });
+}

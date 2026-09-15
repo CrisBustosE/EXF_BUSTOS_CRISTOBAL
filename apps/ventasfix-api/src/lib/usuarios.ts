@@ -12,13 +12,19 @@ export class ConflictError extends Error {
   }
 }
 
-const requiredString = (label: string) => z.string().trim().min(1, `${label} es requerido`);
+const requiredString = (label: string, maxLength?: number) => {
+  let schema = z.string().trim().min(1, `${label} es requerido`);
+  if (maxLength) {
+    schema = schema.max(maxLength, `${label} no puede superar ${maxLength} caracteres`);
+  }
+  return schema;
+};
 
-const rutField = requiredString("El rut")
+const rutField = requiredString("El rut", 12)
   .refine(isValidRut, "RUT inválido (dígito verificador no coincide)")
   .transform((value) => normalizeRut(value) as string);
 
-const emailField = requiredString("El email")
+const emailField = requiredString("El email", 150)
   .email("Email inválido")
   .refine((value) => value.toLowerCase().endsWith("@ventasfix.cl"), {
     message: "El email debe terminar en @ventasfix.cl",
@@ -26,8 +32,8 @@ const emailField = requiredString("El email")
 
 export const usuarioInputSchema = z.object({
   rut: rutField,
-  nombre: requiredString("El nombre"),
-  apellido: requiredString("El apellido"),
+  nombre: requiredString("El nombre", 100),
+  apellido: requiredString("El apellido", 100),
   email: emailField,
   password: requiredString("El password"),
 });

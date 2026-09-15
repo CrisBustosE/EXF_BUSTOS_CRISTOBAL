@@ -127,7 +127,14 @@ para que el sistema sea "de ventas")
 3. El campo derivado `estado_stock` de un producto es `"bajo"` cuando
    `stock_actual <= stock_bajo`, `"alto"` cuando `stock_actual >=
    stock_alto`, y `"normal"` en cualquier otro caso; se calcula al
-   responder la API, nunca se persiste.
+   responder la API, nunca se persiste. Si `stock_bajo` y `stock_alto`
+   quedan configurados de forma que ambas condiciones se cumplen a la
+   vez (ej. `stock_bajo >= stock_alto`, o `stock_actual` cae justo en
+   el valor donde se solapan), `"bajo"` tiene prioridad — se evalúa
+   primero en la cadena de condiciones, a propósito: es el resultado
+   más conservador (alertar que falta stock antes que celebrar que
+   sobra). No es un bug ni un caso que la API rechace; `stock_bajo` y
+   `stock_alto` no tienen una regla que los obligue a no solaparse.
 4. RUT (de Usuario y de Cliente) se valida con algoritmo de dígito
    verificador chileno antes de persistir.
 

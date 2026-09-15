@@ -15,16 +15,47 @@ export class ConflictError extends Error {
 
 export class InvalidImageError extends Error {}
 
-const requiredString = (label: string) => z.string().trim().min(1, `${label} es requerido`);
-const positiveNumber = (label: string) => z.number({ error: `${label} es requerido` }).positive(`${label} debe ser > 0`);
+const requiredString = (label: string, maxLength?: number) => {
+  let schema = z.string().trim().min(1, `${label} es requerido`);
+  if (maxLength) {
+    schema = schema.max(maxLength, `${label} no puede superar ${maxLength} caracteres`);
+  }
+  return schema;
+};
+
+// Techos de negocio, no solo de tipo de dato: precio_neto/precio_de_venta
+// son Float en Prisma (rango enorme, no crashean), pero un precio de más
+// de 1 billón de CLP por producto no tiene sentido de negocio, y de paso
+// se mantiene bajo Number.MAX_SAFE_INTEGER (evita pérdida de precisión de
+// punto flotante). stock_* SÍ son Int en SQLite (overflow real ~2.147
+// millones, crashea Prisma con 500 crudo); un millón de unidades por
+// producto ya es un techo generoso para un catálogo B2B, muy por debajo
+// del límite de la columna.
+const PRECIO_MAX = 1_000_000_000_000;
+const STOCK_MAX = 1_000_000;
+
+const positiveNumber = (label: string) =>
+  z
+    .number({ error: `${label} es requerido` })
+    .positive(`${label} debe ser > 0`)
+    .max(PRECIO_MAX, `${label} no puede superar ${PRECIO_MAX.toLocaleString("es-CL")}`);
 const nonNegativeInt = (label: string) =>
-  z.number({ error: `${label} es requerido` }).int(`${label} debe ser un entero`).nonnegative(`${label} debe ser >= 0`);
+  z
+    .number({ error: `${label} es requerido` })
+    .int(`${label} debe ser un entero`)
+    .nonnegative(`${label} debe ser >= 0`)
+    .max(STOCK_MAX, `${label} no puede superar ${STOCK_MAX.toLocaleString("es-CL")}`);
 
 export const productoInputSchema = z.object({
-  sku: requiredString("El sku"),
-  nombre: requiredString("El nombre"),
-  descripcion_corta: requiredString("La descripción corta"),
-  descripcion_larga: z.string().trim().min(1).nullish(),
+  sku: requiredString("El sku", 50),
+  nombre: requiredString("El nombre", 150),
+  descripcion_corta: requiredString("La descripción corta", 200),
+  descripcion_larga: z
+    .string()
+    .trim()
+    .min(1)
+    .max(2000, "La descripción larga no puede superar 2000 caracteres")
+    .nullish(),
   precio_neto: positiveNumber("El precio neto"),
   precio_de_venta: positiveNumber("El precio de venta"),
   stock_actual: nonNegativeInt("El stock actual"),
