@@ -1,0 +1,10 @@
+{
+  "name": "ventasfix",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"cd apps/ventasfix-api && npm run dev\" \"cd apps/ventasfix-web && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
