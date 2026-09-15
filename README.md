@@ -265,6 +265,19 @@ todavía exista en la base de datos, así que la sesión deja de tener
 acceso real desde la siguiente petición, aunque el token en sí no se
 revoque hasta su expiración natural (8 horas).
 
+**bfcache con sesión inválida en desarrollo (`next dev`).** Tras
+auto-eliminar la cuenta y navegar hacia atrás con el botón del
+navegador, el back-forward cache del navegador puede mostrar
+brevemente una vista congelada de una sesión ya inválida — `next dev`
+sobrescribe internamente el header `Cache-Control: no-store` seteado
+en `proxy.ts` (verificado), lo que en producción sí bloquea esa
+restauración. Cualquier acción real intentada sobre esa vista
+congelada es rechazada por el servidor (401) y redirige a `/login` de
+inmediato (`redirectIfUnauthorized`, ver `src/lib/client-fetch.ts`) —
+no hay dato expuesto ni operación que se ejecute de verdad, solo una
+pantalla vieja hasta el primer clic. En producción (`next start`), el
+header llega intacto y el problema no llega a ocurrir.
+
 **Sin pasarela de pago, facturación electrónica (SII), ni múltiples
 bodegas/sucursales.** Excluidos explícitamente del alcance desde
 BRIEF.md §2, al no ser requeridos por el enunciado del examen.
