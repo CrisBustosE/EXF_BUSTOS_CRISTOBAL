@@ -1,4 +1,22 @@
-body {
-  background-color: #f5f6f8;
-  color: #1f2937;
+/* Bootstrap ya genera :root y body con los colores de marca (compilado
+   desde Sass en bootstrap-custom.scss, ver docs/BRAND.md sección 2). Solo
+   queda lo que Bootstrap no puede generar solo: */
+
+/* Azul medio (#2C5282) — hover/active de botones primarios. Bootstrap
+   oscurece automáticamente $primary para el hover (shade-color), pero
+   BRAND.md pide un azul MÁS CLARO como hover, así que no hay forma de
+   lograrlo solo con la variable $primary; se fija a mano. */
+.btn-primary {
+  --bs-btn-hover-bg: #2c5282;
+  --bs-btn-hover-border-color: #2c5282;
+  --bs-btn-active-bg: #2c5282;
+  --bs-btn-active-border-color: #2c5282;
+}
+
+/* Ancho del sidebar fijo (BRAND.md sección 5); no hay utilidad de
+   Bootstrap para un valor arbitrario de 240px. */
+@media (min-width: 992px) {
+  .app-content {
+    margin-left: 240px;
+  }
 }

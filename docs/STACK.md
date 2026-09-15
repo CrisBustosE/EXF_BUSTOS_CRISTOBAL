@@ -45,7 +45,27 @@ docs/
   route handlers se usan para servir las vistas y para el BFF de login
   (`app/api/login/route.ts`), nunca para lógica de negocio de dominio ni
   acceso a base de datos (eso vive en `ventasfix-api`).
-- **Bootstrap 5** — estilos y componentes UI.
+- **Bootstrap 5** — estilos y componentes UI. Compilado desde su fuente
+  Sass (`src/app/bootstrap-custom.scss`), no desde el CSS ya compilado
+  de `dist/`: los componentes de Bootstrap 5.3 (`.btn-primary`, `.badge`,
+  `.alert-*`, focus rings, etc.) fijan sus custom properties a valores
+  hex literales calculados en tiempo de compilación Sass a partir de
+  `$primary`/etc. — solo las utilidades (`.text-primary`, `.bg-primary`)
+  leen `var(--bs-primary)` en runtime. Sobreescribir `--bs-primary` en
+  `:root` sin recompilar solo pinta las utilidades, no los componentes.
+  `bootstrap-custom.scss` fija `$primary`, `$secondary`, `$success`,
+  `$info`, `$warning`, `$danger`, `$body-bg`, `$body-color` y
+  `$border-color` a los valores de `docs/BRAND.md` sección 2 antes de
+  `@import "bootstrap/scss/bootstrap"`, así todos los componentes
+  heredan los colores de marca, no solo las utilidades.
+- **`--webpack` en vez de Turbopack** para `next dev`/`next build` en
+  `ventasfix-web` (scripts `dev`/`build` de su `package.json`). Next.js
+  16 + Turbopack en Windows no resuelve los `@import` relativos internos
+  de `node_modules/bootstrap/scss/**` al compilar Sass (bug abierto,
+  [vercel/next.js#86431](https://github.com/vercel/next.js/issues/86431));
+  el workaround de `sassOptions.includePaths` no lo soluciona, solo
+  `--webpack` lo hace. `ventasfix-api` no se ve afectado y sigue usando
+  Turbopack (default) porque no usa Sass ni Bootstrap.
 - **Zod** — validación de formularios en el cliente (misma librería que el
   backend, evita aprender dos sintaxis de validación distintas).
 - **Zustand** — estado de UI/cliente que **no sea** la sesión de
