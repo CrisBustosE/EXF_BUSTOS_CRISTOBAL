@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
   },
   sassOptions: {
     implementation: "sass-embedded",
+    // Silencia deprecation warnings que vienen del código fuente de
+    // Bootstrap 5 (@import clásico, que Dart Sass recién elimina en su
+    // v3.0) — no de nuestro bootstrap-custom.scss. `quietDeps` filtra
+    // por origen (node_modules), no por tipo de warning, así que
+    // seguimos viendo cualquier deprecación real en nuestro propio Sass.
+    quietDeps: true,
   },
   async headers() {
     return [
