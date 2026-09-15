@@ -9,12 +9,14 @@ const rutField = z
   .string()
   .trim()
   .min(1, "El rut es requerido")
+  .max(12, "El rut no puede superar 12 caracteres")
   .refine(isValidRut, "RUT inválido (dígito verificador no coincide)");
 
 const emailField = z
   .string()
   .trim()
   .min(1, "El email es requerido")
+  .max(150, "El email no puede superar 150 caracteres")
   .email("Email inválido")
   .refine((value) => value.toLowerCase().endsWith("@ventasfix.cl"), {
     message: "El email debe terminar en @ventasfix.cl",
@@ -49,8 +51,12 @@ export default function UsuarioForm({ usuario, onSubmit, onCancel, serverError }
 
   const schema = z.object({
     rut: rutField,
-    nombre: z.string().trim().min(1, "El nombre es requerido"),
-    apellido: z.string().trim().min(1, "El apellido es requerido"),
+    nombre: z.string().trim().min(1, "El nombre es requerido").max(100, "El nombre no puede superar 100 caracteres"),
+    apellido: z
+      .string()
+      .trim()
+      .min(1, "El apellido es requerido")
+      .max(100, "El apellido no puede superar 100 caracteres"),
     email: emailField,
     // Al editar, vacío = "no cambiar la contraseña" (ver src/lib/api-proxy.ts
     // y usuarioUpdateSchema en ventasfix-api); al crear, siempre requerido.
