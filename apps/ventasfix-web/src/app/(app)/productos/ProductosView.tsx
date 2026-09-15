@@ -82,7 +82,6 @@ export default function ProductosView({
       nombre: values.nombre,
       descripcion_corta: values.descripcion_corta,
       precio_neto: values.precio_neto,
-      precio_de_venta: values.precio_de_venta,
       stock_actual: values.stock_actual,
       stock_minimo: values.stock_minimo,
       stock_bajo: values.stock_bajo,
