@@ -298,6 +298,21 @@ expirar, salvo en el caso específico ya cubierto de auto-eliminación
 (3.3.5). Para el tamaño y alcance de este proyecto se consideró un
 costo de infraestructura no justificado por el riesgo real.
 
+**Vulnerabilidad reportada por `npm audit` en dependencia transitiva de
+Prisma.** `npm audit` en `ventasfix-api` reporta una vulnerabilidad
+(CVE-2026-40345, CWE-674 — recursión no controlada / agotamiento de
+stack) en `deepmerge-ts`, arrastrada transitivamente vía `prisma` →
+`@prisma/config`. Se evaluó conscientemente no aplicar el fix
+sugerido (`npm audit fix --force`, que downgradea Prisma 6.19.3 →
+6.12.0): la fusión vulnerable solo ocurre dentro de comandos de la CLI
+de Prisma en tiempo de desarrollo/build (`generate`, `migrate dev`,
+`db seed`), nunca en el cliente generado que usa el servidor en
+runtime — explotarla requeriría ya tener acceso de escritura al
+repositorio, momento en el cual esta vulnerabilidad puntual deja de
+ser la preocupación relevante. El downgrade sugerido introduce más
+riesgo real (perder 7 versiones menores de una dependencia ya
+verificada) que el que mitiga.
+
 ## 5. Instalación y ejecución local
 
 ### 5.1 Requisitos previos
