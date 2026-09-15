@@ -10,11 +10,15 @@ const nextConfig: NextConfig = {
   },
   sassOptions: {
     implementation: "sass-embedded",
-    // Silencia deprecation warnings que vienen del código fuente de
-    // Bootstrap 5 (@import clásico, que Dart Sass recién elimina en su
-    // v3.0) — no de nuestro bootstrap-custom.scss. `quietDeps` filtra
-    // por origen (node_modules), no por tipo de warning, así que
-    // seguimos viendo cualquier deprecación real en nuestro propio Sass.
+    // `quietDeps` solo cubre lo que bootstrap-custom.scss importa (los
+    // .scss dentro de node_modules/bootstrap), no las líneas @import del
+    // propio bootstrap-custom.scss — Sass sigue avisando sobre esas dos
+    // porque es el archivo "raíz" que se está compilando, no algo que
+    // ese archivo arrastra. `silenceDeprecations` filtra por tipo de
+    // warning en vez de por origen, así que cubre ambos casos: el mismo
+    // @import clásico (que Dart Sass recién elimina en su v3.0) tanto en
+    // bootstrap-custom.scss como en lo que importa de Bootstrap.
+    silenceDeprecations: ["import"],
     quietDeps: true,
   },
   async headers() {
