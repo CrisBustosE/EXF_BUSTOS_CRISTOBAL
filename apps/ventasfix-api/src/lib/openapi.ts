@@ -23,6 +23,10 @@ const usuarioResponseSchema = usuarioInputSchema.omit({ password: true }).extend
 const productoResponseSchema = productoInputSchema.extend({
   id: z.number().int(),
   descripcion_larga: z.string().nullable(),
+  // Ya no forma parte del body de request (ver src/lib/productos.ts):
+  // se calcula en el servidor a partir de precio_neto, nunca lo envía
+  // el cliente. Sigue siendo parte de la respuesta.
+  precio_de_venta: z.number(),
   imagen_del_producto: z.string().nullable(),
   estado_stock: z.enum(["bajo", "normal", "alto"]),
 });

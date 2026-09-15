@@ -64,12 +64,20 @@ const schema = z.object({
     .max(2000, "La descripción larga no puede superar 2000 caracteres")
     .optional(),
   precio_neto: positiveNumberField("El precio neto"),
-  precio_de_venta: positiveNumberField("El precio de venta"),
   stock_actual: nonNegativeIntField("El stock actual"),
   stock_minimo: nonNegativeIntField("El stock mínimo"),
   stock_bajo: nonNegativeIntField("El stock bajo"),
   stock_alto: nonNegativeIntField("El stock alto"),
 });
+
+// Según el enunciado original: precio de venta = precio neto + IVA 19%
+// fijo, sin margen. Se calcula acá solo para mostrarlo en vivo — el
+// cálculo real y autoritativo vive en la API (src/lib/productos.ts).
+const clpFormatter = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" });
+function calcularPrecioDeVenta(precioNeto: string): number {
+  const neto = Number(precioNeto);
+  return Number.isFinite(neto) && neto > 0 ? Math.round(neto * 1.19) : 0;
+}
 
 export type ProductoFormValues = z.infer<typeof schema>;
 
@@ -98,7 +106,6 @@ export default function ProductoForm({
     descripcion_corta: producto?.descripcion_corta ?? "",
     descripcion_larga: producto?.descripcion_larga ?? "",
     precio_neto: producto ? String(producto.precio_neto) : "",
-    precio_de_venta: producto ? String(producto.precio_de_venta) : "",
     stock_actual: producto ? String(producto.stock_actual) : "",
     stock_minimo: producto ? String(producto.stock_minimo) : "",
     stock_bajo: producto ? String(producto.stock_bajo) : "",
@@ -254,16 +261,15 @@ export default function ProductoForm({
           <div className="form-floating mb-3">
             <input
               type="text"
-              inputMode="decimal"
-              className={`form-control ${errors.precio_de_venta ? "is-invalid" : ""}`}
+              className="form-control"
               id="producto-precio-venta"
-              placeholder="Precio de venta"
-              value={values.precio_de_venta}
-              onChange={(e) => setNumericField("precio_de_venta", e.target.value)}
+              value={clpFormatter.format(calcularPrecioDeVenta(values.precio_neto))}
+              disabled
+              readOnly
             />
             <label htmlFor="producto-precio-venta">Precio de venta</label>
-            {errors.precio_de_venta && <div className="invalid-feedback">{errors.precio_de_venta}</div>}
           </div>
+          <div className="form-text mt-n2">Incluye IVA 19%, calculado automáticamente</div>
         </div>
       </div>
 
@@ -309,6 +315,25 @@ export default function ProductoForm({
             Stock bajo ({stockBajoNum}) es mayor o igual que stock alto ({stockAltoNum}): el
             producto quedará marcado como &quot;bajo&quot; siempre. Es válido, pero
             probablemente no es la configuración deseada.
+          </div>
+        );
+      })()}
+
+      {(() => {
+        const stockBajoNum = Number(values.stock_bajo);
+        const stockMinimoNum = Number(values.stock_minimo);
+        const belowMinimo =
+          values.stock_bajo !== "" &&
+          values.stock_minimo !== "" &&
+          !Number.isNaN(stockBajoNum) &&
+          !Number.isNaN(stockMinimoNum) &&
+          stockBajoNum < stockMinimoNum;
+        if (!belowMinimo) return null;
+        return (
+          <div className="alert alert-warning py-2 small mb-3" role="alert">
+            El stock bajo ({stockBajoNum}) es menor que el stock mínimo ({stockMinimoNum}): la
+            alerta de &quot;bajo&quot; se activará después de que el producto ya esté por
+            debajo de tu nivel de seguridad deseado. ¿Confirmas esta configuración?
           </div>
         );
       })()}

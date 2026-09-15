@@ -52,7 +52,7 @@ Personal interno que opera el sistema (no son los clientes).
 | descripcion_larga   | text    | Opcional |
 | imagen_del_producto | string  | Path/URL de la imagen; una sola imagen por producto (ver mecanismo de carga abajo) |
 | precio_neto         | decimal | > 0 |
-| precio_de_venta     | decimal | > 0; incluye impuestos/margen sobre el precio neto |
+| precio_de_venta     | decimal | = round(precio_neto * 1.19); calculado automáticamente por el sistema, el usuario nunca lo ingresa directamente; no incluye margen adicional, según el enunciado original del examen (IVA fijo 19%) |
 | stock_actual        | int     | >= 0; se descuenta automáticamente al confirmar una venta |
 | stock_minimo        | int     | >= 0; cantidad de seguridad que el producto debería mantener (uso interno de reposición) |
 | stock_bajo          | int     | >= 0; umbral bajo el cual `stock_actual` se considera **stock bajo** |
