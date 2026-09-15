@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createDocument, type ZodOpenApiOperationObject } from "zod-openapi";
 import { loginSchema } from "@/lib/auth";
-import { usuarioInputSchema } from "@/lib/usuarios";
+import { usuarioInputSchema, usuarioUpdateSchema } from "@/lib/usuarios";
 import { productoInputSchema } from "@/lib/productos";
 import { clienteInputSchema } from "@/lib/clientes";
 
@@ -57,12 +57,24 @@ function crudPaths(opts: {
   tag: string;
   base: string; // ej. "/api/usuarios"
   inputSchema: z.ZodType;
+  // Solo si el body de PUT difiere del de POST (ej. Usuario: password
+  // opcional en update). Por defecto, igual a inputSchema.
+  updateSchema?: z.ZodType;
   responseSchema: z.ZodType;
   listItem: string; // nombre singular para descripciones, ej. "usuario"
   conflictDescription: string;
   querySchema?: z.ZodObject<z.ZodRawShape>;
 }) {
-  const { tag, base, inputSchema, responseSchema, listItem, conflictDescription, querySchema } = opts;
+  const {
+    tag,
+    base,
+    inputSchema,
+    updateSchema = inputSchema,
+    responseSchema,
+    listItem,
+    conflictDescription,
+    querySchema,
+  } = opts;
 
   const list: ZodOpenApiOperationObject = {
     tags: [tag],
@@ -115,7 +127,7 @@ function crudPaths(opts: {
     summary: `Actualizar ${listItem}`,
     security: bearerSecurity,
     requestParams: idParam,
-    requestBody: { content: { "application/json": { schema: inputSchema } } },
+    requestBody: { content: { "application/json": { schema: updateSchema } } },
     responses: {
       "200": {
         description: "Actualizado",
@@ -211,6 +223,7 @@ export function buildOpenApiDocument() {
         tag: "Usuarios",
         base: "/api/usuarios",
         inputSchema: usuarioInputSchema,
+        updateSchema: usuarioUpdateSchema,
         responseSchema: usuarioResponseSchema,
         listItem: "usuario",
         conflictDescription: "Ya existe un usuario con ese rut o email",
