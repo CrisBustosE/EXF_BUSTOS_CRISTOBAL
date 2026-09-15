@@ -57,12 +57,18 @@ export const productoInputSchema = z.object({
     .max(2000, "La descripción larga no puede superar 2000 caracteres")
     .nullish(),
   precio_neto: positiveNumber("El precio neto"),
-  precio_de_venta: positiveNumber("El precio de venta"),
   stock_actual: nonNegativeInt("El stock actual"),
   stock_minimo: nonNegativeInt("El stock mínimo"),
   stock_bajo: nonNegativeInt("El stock bajo"),
   stock_alto: nonNegativeInt("El stock alto"),
 });
+
+// Según el enunciado original del examen: "precio de venta (es el precio
+// con impuestos, el iva corresponde al 19%)" — fórmula fija, sin margen.
+// El usuario nunca lo ingresa: se calcula acá, antes de persistir.
+function calcularPrecioDeVenta(precioNeto: number): number {
+  return Math.round(precioNeto * 1.19);
+}
 
 export type ProductoInput = z.infer<typeof productoInputSchema>;
 
@@ -106,7 +112,9 @@ export async function getProducto(id: number): Promise<ProductoDTO> {
 
 export async function createProducto(input: ProductoInput): Promise<ProductoDTO> {
   try {
-    const producto = await prisma.producto.create({ data: input });
+    const producto = await prisma.producto.create({
+      data: { ...input, precio_de_venta: calcularPrecioDeVenta(input.precio_neto) },
+    });
     return toDTO(producto);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -118,7 +126,10 @@ export async function createProducto(input: ProductoInput): Promise<ProductoDTO>
 
 export async function updateProducto(id: number, input: ProductoInput): Promise<ProductoDTO> {
   try {
-    const producto = await prisma.producto.update({ where: { id }, data: input });
+    const producto = await prisma.producto.update({
+      where: { id },
+      data: { ...input, precio_de_venta: calcularPrecioDeVenta(input.precio_neto) },
+    });
     return toDTO(producto);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
