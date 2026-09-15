@@ -4,6 +4,8 @@ type ConfirmDeleteModalProps = {
   show: boolean;
   /** ej. "usuario Juan Pérez" — BRAND.md sección 7: "¿Eliminar [entidad]?..." */
   entityLabel: string;
+  /** Reemplaza el texto templado por completo (ej. advertencia de auto-eliminación). */
+  message?: string;
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
@@ -15,6 +17,7 @@ type ConfirmDeleteModalProps = {
 export default function ConfirmDeleteModal({
   show,
   entityLabel,
+  message,
   onConfirm,
   onCancel,
   loading = false,
@@ -40,9 +43,7 @@ export default function ConfirmDeleteModal({
               <button type="button" className="btn-close" aria-label="Cerrar" onClick={onCancel} />
             </div>
             <div className="modal-body">
-              <p className="mb-0">
-                ¿Eliminar {entityLabel}? Esta acción no se puede deshacer.
-              </p>
+              <p className="mb-0">{message ?? `¿Eliminar ${entityLabel}? Esta acción no se puede deshacer.`}</p>
             </div>
             <div className="modal-footer">
               <button
