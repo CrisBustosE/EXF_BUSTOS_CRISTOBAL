@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
   sassOptions: {
     implementation: "sass-embedded",
   },
+  async headers() {
+    return [
+      {
+        source: "/((?!login|api/).*)",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
