@@ -21,5 +21,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|api/login|api/logout|_next/static|_next/image|favicon.ico).*)"],
+  // Todo /api/* es un BFF: maneja su propia sesión vía getSession() y
+  // responde 401 JSON, nunca debe redirigir a la página HTML de /login
+  // (rompería el fetch() del cliente al intentar parsear la respuesta).
+  matcher: ["/((?!login|api/|_next/static|_next/image|favicon.ico).*)"],
 };

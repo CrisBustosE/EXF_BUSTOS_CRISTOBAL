@@ -34,6 +34,15 @@ export const usuarioInputSchema = z.object({
 
 export type UsuarioInput = z.infer<typeof usuarioInputSchema>;
 
+// En update, password es opcional: vacío/ausente significa "no cambiar
+// la contraseña" (ver updateUsuario). Cuando sí viene, misma regla que
+// en create (no vacío tras trim).
+export const usuarioUpdateSchema = usuarioInputSchema.extend({
+  password: z.string().trim().optional(),
+});
+
+export type UsuarioUpdateInput = z.infer<typeof usuarioUpdateSchema>;
+
 export type UsuarioDTO = {
   id: number;
   rut: string;
@@ -78,10 +87,15 @@ export async function createUsuario(input: UsuarioInput): Promise<UsuarioDTO> {
   }
 }
 
-export async function updateUsuario(id: number, input: UsuarioInput): Promise<UsuarioDTO> {
-  const password = await argon2.hash(input.password);
+export async function updateUsuario(id: number, input: UsuarioUpdateInput): Promise<UsuarioDTO> {
+  const { password: newPassword, ...rest } = input;
+  const data: Prisma.UsuarioUpdateInput = { ...rest };
+  if (newPassword) {
+    data.password = await argon2.hash(newPassword);
+  }
+
   try {
-    const usuario = await prisma.usuario.update({ where: { id }, data: { ...input, password } });
+    const usuario = await prisma.usuario.update({ where: { id }, data });
     return toDTO(usuario);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

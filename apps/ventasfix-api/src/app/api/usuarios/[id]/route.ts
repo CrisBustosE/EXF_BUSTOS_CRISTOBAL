@@ -7,7 +7,7 @@ import {
   deleteUsuario,
   getUsuario,
   updateUsuario,
-  usuarioInputSchema,
+  usuarioUpdateSchema,
 } from "@/lib/usuarios";
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (id === null) return NextResponse.json({ error: "id inválido" }, { status: 400 });
 
     const body = await request.json().catch(() => null);
-    const parsed = usuarioInputSchema.safeParse(body);
+    const parsed = usuarioUpdateSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Datos inválidos", issues: parsed.error.flatten().fieldErrors },
