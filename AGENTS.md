@@ -172,9 +172,17 @@ y en el README raíz.
 
 ## Datos de prueba
 
-Los datos que hoy existen en `apps/ventasfix-api/prisma/dev.db` (usuarios,
-productos y clientes creados durante desarrollo y smoke testing manual)
-son de desarrollo/testing, **no son los definitivos**. Antes de armar el
-README final con datos de ejemplo presentables hay que resetear la base
-(borrar `dev.db`, volver a correr `npm run db:push` y el seed) y cargar
-datos limpios y representativos.
+Los datos en `apps/ventasfix-api/prisma/dev.db` son los del seed
+ampliado (`prisma/seed.ts`, commits `fabb23a`/`2b53614`): 3 usuarios
+(admin + 2 usuarios internos), 5 productos (distribuidos entre los 3
+estados de stock bajo/normal/alto, con RUT/SKU/nombres presentables,
+sin lorem ipsum ni valores tipo `TEST-*`) y 4 clientes con RUT de
+empresa válido. Son los datos "presentables" — no un estado provisorio
+a reemplazar: el README final ya usa este mismo seed para las capturas
+de la sección 6 (Evidencia de funcionamiento).
+
+Para regenerarlos desde cero: `npm run db:migrate` (aplica las
+migraciones y siembra automáticamente si la base es nueva) o
+`npm run db:seed` (reseed idempotente sobre una base ya migrada, no
+duplica registros). `npm run db:push` **no existe** como script — no
+usarlo (ver 5.3 del README para el detalle completo).
