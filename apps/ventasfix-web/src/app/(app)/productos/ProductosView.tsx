@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useDebouncedEffect } from "@/lib/useDebouncedEffect";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import EntityModal from "@/components/EntityModal";
 import Toast, { type ToastVariant } from "@/components/Toast";
@@ -56,11 +57,20 @@ export default function ProductosView({
     setModalOpen(true);
   }
 
+  function pushSearch(nextField: "nombre" | "sku", nextQuery: string) {
+    const params = new URLSearchParams();
+    if (nextQuery.trim()) params.set(nextField, nextQuery.trim());
+    router.push(`/productos${params.toString() ? `?${params.toString()}` : ""}`);
+  }
+
+  // Búsqueda dinámica: se dispara sola 350ms después de que la persona deja
+  // de escribir (debounce), no en cada tecla. Vaciar el input también
+  // dispara el efecto, así que limpia el query param y vuelve a listar todo.
+  useDebouncedEffect(() => pushSearch(field, query), [field, query], 350);
+
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const params = new URLSearchParams();
-    if (query.trim()) params.set(field, query.trim());
-    router.push(`/productos${params.toString() ? `?${params.toString()}` : ""}`);
+    pushSearch(field, query);
   }
 
   async function handleSubmit(values: ProductoFormValues) {
