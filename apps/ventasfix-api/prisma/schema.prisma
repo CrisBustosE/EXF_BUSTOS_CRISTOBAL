@@ -18,3 +18,33 @@ model Usuario {
   email    String @unique
   password String
 }
+
+model Producto {
+  id                  Int     @id @default(autoincrement())
+  sku                 String  @unique
+  nombre              String
+  descripcion_corta   String
+  descripcion_larga   String?
+  imagen_del_producto String?
+  // Float, no Decimal, para precio_neto/precio_de_venta. SQLite no tiene
+  // un tipo decimal de precisión fija real: bajo el capó, el Decimal de
+  // Prisma en SQLite se sigue guardando en punto flotante, solo que el
+  // cliente lo envuelve en un decimal.js para aritmética "segura" en JS
+  // (y complica la serialización a JSON, que no soporta Decimal nativo).
+  // La limitación de fondo es más profunda que eso: el punto flotante
+  // binario no puede representar exactamente la mayoría de fracciones
+  // decimales (0.1 + 0.2 !== 0.3 en cualquier lenguaje), y el error se
+  // acumula al sumar/multiplicar muchos valores. Para este CRUD (leer y
+  // escribir un precio a la vez) es inofensivo. Se vuelve un problema
+  // real si, en la vertical opcional Venta/DetalleVenta (BRIEF.md 3.4),
+  // se suman muchos precio_de_venta para calcular un total: ahí migrar a
+  // Decimal + serialización explícita, o guardar como entero en la
+  // unidad mínima de CLP (que no tiene centavos, ya son enteros en la
+  // práctica).
+  precio_neto     Float
+  precio_de_venta Float
+  stock_actual    Int
+  stock_minimo    Int
+  stock_bajo      Int
+  stock_alto      Int
+}
