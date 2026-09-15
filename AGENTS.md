@@ -21,17 +21,18 @@ entidad); documentación OpenAPI autogenerada desde los mismos schemas Zod
 
 **Frontend (`ventasfix-web`) — cerrado y verificado**: BFF de
 login/logout, layout protegido (sidebar + offcanvas + header), dashboard
-con KPIs, mantenedor de Usuario (listar/crear/editar/eliminar), mantenedor
-de Producto (listar/crear/editar/eliminar + subida de imagen).
+con KPIs, mantenedor de Usuario (listar/crear/editar/eliminar, incluye
+auto-eliminación con guard del último usuario), mantenedor de Producto
+(listar/crear/editar/eliminar + subida de imagen), mantenedor de Cliente
+(listar/crear/editar/eliminar).
 
 **Falta**:
 
-- Mantenedor de Cliente en el frontend — el backend ya está completo
-  (`apps/ventasfix-api/src/lib/clientes.ts` + rutas REST), solo falta la
-  vista; replicar el patrón de Producto/Usuario (ver "Patrones
-  establecidos" abajo).
 - Extensión opcional de Venta/DetalleVenta (ver `docs/BRIEF.md` secciones
-  3.4/3.5) — no arrancada, ni backend ni frontend.
+  3.4/3.5) — **decisión consciente de alcance, no un olvido**: el
+  enunciado original del examen no la pide, la rúbrica no la evalúa, y
+  el tiempo se priorizó en pulir y verificar exhaustivamente el núcleo
+  en su lugar. Queda documentada como backlog / siguiente sprint.
 
 ## Cómo correr el proyecto
 
@@ -52,8 +53,9 @@ y en el README raíz.
 - **Estructura por vertical de frontend**: `page.tsx` (fetch server-side
   inicial) + `<Entidad>View.tsx` (client: tabla, paginación, búsqueda,
   estado) + `<Entidad>Form.tsx` (client: modal de alta/edición, con schema
-  Zod propio que espeja al de la API). Ver `usuarios/` y `productos/` como
-  referencia antes de escribir `clientes/`.
+  Zod propio que espeja al de la API). Ver `usuarios/`, `productos/` y
+  `clientes/` como referencia — las tres verticales ya están escritas con
+  este mismo patrón.
 - **BFF**: el browser nunca llama a `ventasfix-api` directo. Cada ruta
   `app/api/<entidad>/**` en `ventasfix-web` reenvía con el JWT de la
   cookie de sesión vía `forwardToApi`/`forwardMultipartToApi`
@@ -63,6 +65,17 @@ y en el README raíz.
 - **Componentes genéricos reutilizables**: `EntityModal`,
   `ConfirmDeleteModal`, `Toast` ya existen — usarlos en cualquier
   vertical nueva en vez de crear modales/toasts ad hoc.
+  `ConfirmDeleteModal` acepta un `message?: string` opcional que
+  reemplaza el texto templado por completo (usado por la advertencia de
+  auto-eliminación de Usuario) — no crear un modal aparte para un texto
+  de confirmación distinto.
+- **Búsqueda dinámica con debounce**: `useDebouncedEffect`
+  (`src/lib/useDebouncedEffect.ts`) — hook genérico (no atado a ninguna
+  entidad) que dispara un callback 350ms después del último cambio en
+  sus deps, cancelando cualquier ejecución pendiente si vuelven a
+  cambiar antes. Ya usado en los buscadores de Producto y Cliente; usarlo
+  para cualquier buscador nuevo en vez de reimplementar `setTimeout`
+  a mano.
 - **Ciclo de trabajo por vertical chica**: plan corto → confirmación
   explícita del usuario → implementar → smoke test real (curl/Postman-
   equivalente y navegador; nunca fabricar verificación) → commit(s) en
@@ -134,6 +147,28 @@ y en el README raíz.
   `STACK.md`), no hay forma de compartir código entre apps sin agregar
   infraestructura de workspace que el stack no pide. Si se toca la
   lógica del RUT, actualizar los dos archivos.
+- **`requireAuth` (API) valida que el usuario del JWT siga existiendo en
+  la DB**, no solo que la firma sea válida: un `findUnique` extra por
+  request en toda ruta protegida. Deliberado — sin esto, un usuario
+  eliminado (por otro, o auto-eliminado desde otra pestaña) seguiría con
+  acceso completo hasta que su JWT expire naturalmente (hasta 8h). Costo
+  aceptado: una consulta por PK indexada en SQLite, sub-milisegundo, para
+  el tamaño de este proyecto.
+- **No se puede eliminar el último Usuario del sistema** (`deleteUsuario`
+  en `usuarios.ts`, 409 `LastUsuarioError`) — pero un usuario SÍ puede
+  eliminarse a sí mismo si no es el último. En el frontend
+  (`UsuariosView.tsx`), el `DELETE` a la API debe confirmarse exitoso
+  (204) **antes** de disparar el logout forzado — si el logout corriera
+  primero y el `DELETE` fallara (ej. condición de carrera con el último
+  usuario), la sesión se perdería sin que la cuenta se haya eliminado
+  realmente. El branch de logout está anidado dentro del chequeo de
+  éxito, nunca antes.
+- **`precio_de_venta` de Producto es 100% calculado por el servidor**
+  (`Math.round(precio_neto * 1.19)`, IVA fijo 19% según el enunciado
+  original del examen — ver `docs/BRIEF.md` 3.2), nunca un input del
+  usuario. La API lo ignora si llega en el body; el frontend
+  (`ProductoForm.tsx`) solo lo muestra en un campo disabled con el
+  cálculo en vivo. No reintroducir un input editable para este campo.
 
 ## Datos de prueba
 

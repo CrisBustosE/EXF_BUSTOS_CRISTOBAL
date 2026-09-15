@@ -93,6 +93,13 @@ Empresa que compra a VentasFix (venta B2B).
 ### 3.4 Venta (OPCIONAL — entidad faltante en el brief original, necesaria
 para que el sistema sea "de ventas")
 
+> **Decisión de alcance para esta entrega**: se decidió NO implementar
+> Venta/DetalleVenta. El enunciado original del examen no la pide, la
+> rúbrica no la evalúa, y el tiempo se priorizó en pulir y verificar
+> exhaustivamente el núcleo (Usuario, Producto, Cliente, Dashboard,
+> Autenticación) en su lugar. Queda documentada como backlog / siguiente
+> sprint para una eventual continuación del proyecto.
+>
 > **Alcance opcional**: Venta y DetalleVenta se implementan solo después de
 > tener completos y testeados Usuarios, Productos, Clientes, Dashboard y
 > Autenticación. No son parte del entregable mínimo.
