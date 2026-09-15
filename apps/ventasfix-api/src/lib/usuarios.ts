@@ -6,6 +6,12 @@ import { isValidRut, normalizeRut } from "@/lib/rut";
 
 export class NotFoundError extends Error {}
 
+export class LastUsuarioError extends Error {
+  constructor() {
+    super("No se puede eliminar el último usuario del sistema");
+  }
+}
+
 export class ConflictError extends Error {
   constructor(public readonly fields: string[]) {
     super(`Ya existe un usuario con ese ${fields.join(" / ")}`);
@@ -113,6 +119,13 @@ export async function updateUsuario(id: number, input: UsuarioUpdateInput): Prom
 }
 
 export async function deleteUsuario(id: number): Promise<void> {
+  const [usuario, total] = await Promise.all([
+    prisma.usuario.findUnique({ where: { id } }),
+    prisma.usuario.count(),
+  ]);
+  if (!usuario) throw new NotFoundError(`Usuario ${id} no existe`);
+  if (total <= 1) throw new LastUsuarioError();
+
   try {
     await prisma.usuario.delete({ where: { id } });
   } catch (error) {

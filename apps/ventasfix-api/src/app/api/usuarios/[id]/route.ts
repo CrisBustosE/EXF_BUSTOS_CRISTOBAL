@@ -3,6 +3,7 @@ import { UnauthorizedError, requireAuth } from "@/lib/auth";
 import { parseId } from "@/lib/http";
 import {
   ConflictError,
+  LastUsuarioError,
   NotFoundError,
   deleteUsuario,
   getUsuario,
@@ -79,6 +80,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
     if (error instanceof NotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof LastUsuarioError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
     }
     throw error;
   }
