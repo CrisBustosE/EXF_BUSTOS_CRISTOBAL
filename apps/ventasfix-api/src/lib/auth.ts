@@ -1,10 +1,16 @@
 import argon2 from "argon2";
 import { SignJWT, jwtVerify } from "jose";
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
 export class UnauthorizedError extends Error {}
 export class InvalidCredentialsError extends Error {}
+
+export const loginSchema = z.object({
+  email: z.string().trim().min(1, "El email es requerido"),
+  password: z.string().min(1, "El password es requerido"),
+});
 
 // Hash dummy fijo (no corresponde a ninguna password real) usado cuando el
 // email no existe, para que argon2.verify tarde lo mismo que con un usuario
