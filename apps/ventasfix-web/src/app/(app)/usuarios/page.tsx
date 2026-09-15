@@ -37,5 +37,5 @@ export default async function UsuariosPage({
   const page = Math.min(requestedPage, totalPages);
   const usuarios = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  return <UsuariosView usuarios={usuarios} page={page} totalPages={totalPages} />;
+  return <UsuariosView usuarios={usuarios} page={page} totalPages={totalPages} currentUserEmail={session.email} />;
 }

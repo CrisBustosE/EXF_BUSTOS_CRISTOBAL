@@ -12,9 +12,10 @@ type UsuariosViewProps = {
   usuarios: UsuarioRow[];
   page: number;
   totalPages: number;
+  currentUserEmail: string;
 };
 
-export default function UsuariosView({ usuarios, page, totalPages }: UsuariosViewProps) {
+export default function UsuariosView({ usuarios, page, totalPages, currentUserEmail }: UsuariosViewProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<UsuarioRow | null>(null);
@@ -68,10 +69,20 @@ export default function UsuariosView({ usuarios, page, totalPages }: UsuariosVie
 
   async function handleDelete() {
     if (!deletingUsuario) return;
+    const isSelf = deletingUsuario.email === currentUserEmail;
     setDeleteLoading(true);
     try {
       const res = await fetch(`/api/usuarios/${deletingUsuario.id}`, { method: "DELETE" });
       if (res.ok || res.status === 204) {
+        if (isSelf) {
+          // El DELETE ya se confirmó (204) antes de tocar la sesión: si
+          // hubiera fallado (ej. 409 por condición de carrera con el
+          // último usuario), este bloque nunca se ejecuta y la sesión
+          // sigue intacta.
+          await fetch("/api/logout", { method: "POST" });
+          router.push("/login");
+          return;
+        }
         setToast({ variant: "success", message: "Usuario eliminado" });
         router.refresh();
       } else {
@@ -175,6 +186,11 @@ export default function UsuariosView({ usuarios, page, totalPages }: UsuariosVie
       <ConfirmDeleteModal
         show={deletingUsuario !== null}
         entityLabel={deletingUsuario ? `usuario ${deletingUsuario.nombre} ${deletingUsuario.apellido}` : ""}
+        message={
+          deletingUsuario && deletingUsuario.email === currentUserEmail
+            ? `¿Eliminar tu propio usuario (${deletingUsuario.nombre} ${deletingUsuario.apellido})? Se cerrará tu sesión inmediatamente.`
+            : undefined
+        }
         onConfirm={handleDelete}
         onCancel={() => setDeletingUsuario(null)}
         loading={deleteLoading}
