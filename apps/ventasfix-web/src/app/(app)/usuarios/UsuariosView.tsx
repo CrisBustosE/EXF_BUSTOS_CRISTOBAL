@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { redirectIfUnauthorized } from "@/lib/client-fetch";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import EntityModal from "@/components/EntityModal";
 import Toast, { type ToastVariant } from "@/components/Toast";
@@ -56,6 +57,8 @@ export default function UsuariosView({ usuarios, page, totalPages, currentUserEm
       body: JSON.stringify(body),
     });
 
+    if (redirectIfUnauthorized(res, router)) return;
+
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setFormError(typeof data.error === "string" ? data.error : "No se pudo guardar el usuario");
@@ -73,6 +76,7 @@ export default function UsuariosView({ usuarios, page, totalPages, currentUserEm
     setDeleteLoading(true);
     try {
       const res = await fetch(`/api/usuarios/${deletingUsuario.id}`, { method: "DELETE" });
+      if (redirectIfUnauthorized(res, router)) return;
       if (res.ok || res.status === 204) {
         if (isSelf) {
           // El DELETE ya se confirmó (204) antes de tocar la sesión: si

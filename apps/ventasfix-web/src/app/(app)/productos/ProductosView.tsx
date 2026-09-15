@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { redirectIfUnauthorized } from "@/lib/client-fetch";
 import { useDebouncedEffect } from "@/lib/useDebouncedEffect";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import EntityModal from "@/components/EntityModal";
@@ -97,6 +98,8 @@ export default function ProductosView({
       body: JSON.stringify(body),
     });
 
+    if (redirectIfUnauthorized(res, router)) return;
+
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setFormError(typeof data.error === "string" ? data.error : "No se pudo guardar el producto");
@@ -118,6 +121,9 @@ export default function ProductosView({
       method: "POST",
       body: formData,
     });
+
+    if (redirectIfUnauthorized(res, router)) return { error: "Sesión expirada" };
+
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
@@ -133,6 +139,7 @@ export default function ProductosView({
     setDeleteLoading(true);
     try {
       const res = await fetch(`/api/productos/${deletingProducto.id}`, { method: "DELETE" });
+      if (redirectIfUnauthorized(res, router)) return;
       if (res.ok || res.status === 204) {
         setToast({ variant: "success", message: "Producto eliminado" });
         router.refresh();

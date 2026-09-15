@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { redirectIfUnauthorized } from "@/lib/client-fetch";
 import { useDebouncedEffect } from "@/lib/useDebouncedEffect";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import EntityModal from "@/components/EntityModal";
@@ -75,6 +76,8 @@ export default function ClientesView({
       body: JSON.stringify(values),
     });
 
+    if (redirectIfUnauthorized(res, router)) return;
+
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setFormError(typeof data.error === "string" ? data.error : "No se pudo guardar el cliente");
@@ -91,6 +94,7 @@ export default function ClientesView({
     setDeleteLoading(true);
     try {
       const res = await fetch(`/api/clientes/${deletingCliente.id}`, { method: "DELETE" });
+      if (redirectIfUnauthorized(res, router)) return;
       if (res.ok || res.status === 204) {
         setToast({ variant: "success", message: "Cliente eliminado" });
         router.refresh();
