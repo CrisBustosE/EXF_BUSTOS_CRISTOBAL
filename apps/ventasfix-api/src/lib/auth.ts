@@ -49,10 +49,20 @@ export async function requireAuth(request: NextRequest): Promise<AuthPayload> {
   const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length) : null;
   if (!token) throw new UnauthorizedError("Falta el header Authorization: Bearer <token>");
 
+  let payload: AuthPayload;
   try {
-    const { payload } = await jwtVerify(token, jwtSecret());
-    return { id: payload.id as number, email: payload.email as string };
+    const verified = await jwtVerify(token, jwtSecret());
+    payload = { id: verified.payload.id as number, email: verified.payload.email as string };
   } catch {
     throw new UnauthorizedError("Token inválido o expirado");
   }
+
+  // La firma válida solo prueba que el token lo emitió esta API, no que el
+  // usuario siga existiendo: si alguien lo elimina (o se auto-elimina desde
+  // otra pestaña) mientras el JWT sigue vigente (hasta 8h), sin este chequeo
+  // seguiría teniendo acceso completo hasta que expire naturalmente.
+  const usuario = await prisma.usuario.findUnique({ where: { id: payload.id }, select: { id: true } });
+  if (!usuario) throw new UnauthorizedError("El usuario de este token ya no existe");
+
+  return payload;
 }
