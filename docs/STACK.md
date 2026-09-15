@@ -98,10 +98,14 @@ docs/
      respuesta al navegador. El JWT nunca viaja en el body de la
      respuesta al navegador ni se guarda en localStorage/estado de
      cliente (Zustand).
-- `middleware.ts` en la raíz de `ventasfix-web` verifica el JWT (con jose,
-  en Edge Runtime) leyendo la cookie httpOnly en cada request; protege las
+- `proxy.ts` (Next.js 16 reemplazó `middleware.ts` por `proxy.ts`; corre
+  en runtime Node.js, no Edge) en la raíz de `ventasfix-web` verifica el
+  JWT (con jose) leyendo la cookie httpOnly en cada request; protege las
   rutas de los mantenedores (usuarios, productos, clientes) y el
-  dashboard, redirigiendo a `/login` si no hay un token válido.
+  dashboard, redirigiendo a `/login` si no hay un token válido. Se
+  mantiene jose para verificar el JWT porque es compatible con ambos
+  runtimes, no exclusiva de Edge — la elección de jose no dependía de
+  estar en Edge Runtime.
 - `ventasfix-api` sigue exigiendo su propio JWT válido (enviado por el
   BFF, nunca directo desde el navegador) en todo endpoint que no sea
   login; lo valida una función compartida invocada al inicio de cada
