@@ -11,7 +11,17 @@ export async function proxy(request: NextRequest) {
   if (token) {
     try {
       await jwtVerify(token, jwtSecret());
-      return NextResponse.next();
+      const response = NextResponse.next();
+      // Evita que el navegador restaure esta página protegida desde el
+      // bfcache al navegar atrás/adelante (ej. tras auto-eliminar la
+      // propia cuenta — ver 3.3.5/4): sin esto, el back-forward cache
+      // puede mostrar una copia congelada de la página como si la
+      // sesión siguiera activa. No es una falla de seguridad (cualquier
+      // acción real sigue devolviendo 401 desde el servidor), pero
+      // confunde al usuario. `no-store` es la directiva que los
+      // navegadores usan para decidir elegibilidad de bfcache.
+      response.headers.set("Cache-Control", "no-store");
+      return response;
     } catch {
       // token inválido o expirado: cae al redirect de abajo
     }
