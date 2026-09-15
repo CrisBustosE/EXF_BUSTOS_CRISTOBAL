@@ -313,6 +313,28 @@ ser la preocupación relevante. El downgrade sugerido introduce más
 riesgo real (perder 7 versiones menores de una dependencia ya
 verificada) que el que mitiga.
 
+**Sin rate limiting en login.** El endpoint `POST /api/auth/login` no
+limita la cantidad de intentos por email o IP en una ventana de
+tiempo — un atacante podría intentar fuerza bruta contra una
+contraseña sin restricción de velocidad (más allá de la mitigación de
+timing attack ya presente, que solo evita distinguir si un email
+existe, no protege contra intentos repetidos). No implementado en
+esta entrega por no ser requisito del enunciado ni de la rúbrica;
+queda documentado como mejora de seguridad para una eventual
+continuación (ej. rate limiting por IP/email con ventana deslizante,
+usando Redis o una tabla de intentos en la base de datos).
+
+**Advertencia de consola en navegación rápida (RSC prefetch).** Al
+cambiar de página muy rápido mientras hay una búsqueda con debounce o
+un refresh post-mutación en curso, el navegador puede mostrar "Failed
+to fetch RSC payload... Falling back to browser navigation" en
+consola. Es un comportamiento reconocido y mitigado por el propio
+Next.js (ver código fuente en
+next/dist/client/components/router-reducer/fetch-server-response.js)
+ante la cancelación de un fetch en vuelo por cambio de página — la
+navegación siempre completa correctamente (verificado con pruebas de
+navegación agresiva en dev y producción), no requiere ninguna acción.
+
 ## 5. Instalación y ejecución local
 
 ### 5.1 Requisitos previos
