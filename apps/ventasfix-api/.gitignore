@@ -42,3 +42,7 @@ next-env.d.ts
 # sqlite (base local de desarrollo)
 /prisma/*.db
 /prisma/*.db-journal
+
+# imágenes de producto subidas en runtime (solo el path se persiste en BD)
+/public/productos/*
+!/public/productos/.gitkeep

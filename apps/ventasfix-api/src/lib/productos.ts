@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { z } from "zod";
 import { Prisma, type Producto } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +12,8 @@ export class ConflictError extends Error {
     super(`Ya existe un producto con ese ${fields.join(" / ")}`);
   }
 }
+
+export class InvalidImageError extends Error {}
 
 const requiredString = (label: string) => z.string().trim().min(1, `${label} es requerido`);
 const positiveNumber = (label: string) => z.number({ error: `${label} es requerido` }).positive(`${label} debe ser > 0`);
@@ -102,4 +107,44 @@ export async function deleteProducto(id: number): Promise<void> {
     }
     throw error;
   }
+}
+
+const MAX_IMAGEN_BYTES = 5 * 1024 * 1024;
+const IMAGEN_EXT_PERMITIDA: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+const PRODUCTOS_DIR = path.join(process.cwd(), "public", "productos");
+
+/**
+ * Guarda `file` en public/productos/, actualiza SOLO imagen_del_producto
+ * (nunca el binario) y borra el archivo físico anterior si existía.
+ */
+export async function setProductoImagen(id: number, file: File): Promise<ProductoDTO> {
+  const actual = await prisma.producto.findUnique({ where: { id } });
+  if (!actual) throw new NotFoundError(`Producto ${id} no existe`);
+
+  const extension = IMAGEN_EXT_PERMITIDA[file.type];
+  if (!extension) {
+    throw new InvalidImageError(
+      `Tipo de archivo no soportado (${file.type || "desconocido"}); se aceptan jpg, png o webp`,
+    );
+  }
+  if (file.size > MAX_IMAGEN_BYTES) {
+    throw new InvalidImageError("La imagen supera el límite de 5MB");
+  }
+
+  const filename = `${id}-${Date.now()}-${randomUUID()}.${extension}`;
+  await mkdir(PRODUCTOS_DIR, { recursive: true });
+  await writeFile(path.join(PRODUCTOS_DIR, filename), Buffer.from(await file.arrayBuffer()));
+
+  const imagenUrl = `/productos/${filename}`;
+  const producto = await prisma.producto.update({ where: { id }, data: { imagen_del_producto: imagenUrl } });
+
+  if (actual.imagen_del_producto) {
+    void unlink(path.join(PRODUCTOS_DIR, path.basename(actual.imagen_del_producto))).catch(() => {});
+  }
+
+  return toDTO(producto);
 }

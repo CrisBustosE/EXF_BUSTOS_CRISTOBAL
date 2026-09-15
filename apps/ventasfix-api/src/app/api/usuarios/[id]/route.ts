@@ -7,13 +7,9 @@ import {
   updateUsuario,
   usuarioInputSchema,
 } from "@/lib/usuarios";
+import { parseId } from "@/lib/http";
 
 type RouteParams = { params: Promise<{ id: string }> };
-
-function parseId(raw: string): number | null {
-  if (!/^\d+$/.test(raw)) return null;
-  return Number(raw);
-}
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   const id = parseId((await params).id);
