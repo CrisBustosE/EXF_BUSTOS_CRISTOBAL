@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { COOKIE_NAME } from "@/lib/auth-cookie";
-
-function jwtSecret(): Uint8Array {
-  const value = process.env.JWT_SECRET;
-  if (!value) throw new Error("JWT_SECRET no está configurado");
-  return new TextEncoder().encode(value);
-}
+import { COOKIE_NAME, jwtSecret } from "@/lib/auth-cookie";
 
 // Reemplaza a middleware.ts (Next.js 16). Corre en runtime Node.js, no
 // Edge; jose funciona igual en ambos, así que no cambia nada del lado de
