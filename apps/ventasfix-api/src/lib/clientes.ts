@@ -23,11 +23,21 @@ const rutEmpresaField = requiredString("El rut_empresa", 12)
   .refine(isValidRut, "RUT inválido (dígito verificador no coincide)")
   .transform((value) => normalizeRut(value) as string);
 
+const TELEFONO_LENGTH_MSG = "El teléfono debe tener entre 6 y 20 caracteres";
+
+const telefonoField = requiredString("El teléfono")
+  .min(6, TELEFONO_LENGTH_MSG)
+  .max(20, TELEFONO_LENGTH_MSG)
+  .regex(
+    /^\+?[\d\s()-]+$/,
+    "El teléfono solo puede contener números, espacios, guiones, paréntesis y un + inicial",
+  );
+
 export const clienteInputSchema = z.object({
   rut_empresa: rutEmpresaField,
   rubro: requiredString("El rubro", 100),
   razon_social: requiredString("La razón social", 150),
-  telefono: requiredString("El teléfono"),
+  telefono: telefonoField,
   direccion: requiredString("La dirección", 200),
   nombre_contacto: requiredString("El nombre de contacto", 100),
   email_contacto: requiredString("El email de contacto", 150).email("Email inválido"),
