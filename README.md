@@ -299,24 +299,10 @@ costo de infraestructura no justificado por el riesgo real.
   usa su propio motor de consultas — no hace falta `better-sqlite3` ni un
   compilador C++ para levantar el proyecto.
 
-### 5.2 Instalación de dependencias
+### 5.2 Variables de entorno
 
-Cada app tiene su propio `package.json`/`node_modules` (monorepo sin
-workspaces — ver 2.3). Se instalan por separado, en este orden:
-
-```bash
-npm install                                  # orquestador de la raíz (concurrently)
-npm install --prefix apps/ventasfix-api
-npm install --prefix apps/ventasfix-web
-```
-
-El `postinstall` de `ventasfix-api` corre `prisma generate`
-automáticamente — no hace falta un paso aparte.
-
-### 5.3 Variables de entorno
-
-Copiar el `.env.example` de cada app a `.env` antes de levantar el
-proyecto:
+Copiar el `.env.example` de cada app a `.env` **antes** de instalar
+dependencias (ver por qué en 5.3):
 
 ```bash
 cp apps/ventasfix-api/.env.example apps/ventasfix-api/.env
@@ -357,6 +343,28 @@ efecto real es más confusa que útil (invita a cambiarla esperando un
 resultado que no ocurre). Si en el futuro se necesita un puerto
 configurable de verdad, la solución es cablear `-p` a `process.env.PORT`
 en el script correspondiente, no reintroducir la variable sin conectarla.
+
+### 5.3 Instalación de dependencias
+
+Cada app tiene su propio `package.json`/`node_modules` (monorepo sin
+workspaces — ver 2.3). Se instalan por separado, en este orden:
+
+```bash
+npm install                                  # orquestador de la raíz (concurrently)
+npm install --prefix apps/ventasfix-api
+npm install --prefix apps/ventasfix-web
+```
+
+El `postinstall` de `ventasfix-api` corre `prisma generate`
+automáticamente. **Este paso requiere que `apps/ventasfix-api/.env` ya
+exista** (por eso 5.2 va antes): `prisma.config.ts` resuelve
+`DATABASE_URL` en el momento en que se *carga* el archivo de
+configuración — no cuando Prisma efectivamente se conecta a la base —
+así que corre esa validación en **cualquier** comando de Prisma,
+incluido `generate`, que en sí mismo no necesita una conexión real. Sin
+`.env`, `npm install --prefix apps/ventasfix-api` falla con
+`PrismaConfigEnvError: Missing required environment variable:
+DATABASE_URL` (verificado reproduciendo el error exacto).
 
 ### 5.4 Base de datos y seed
 
