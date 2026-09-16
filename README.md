@@ -477,6 +477,13 @@ duplica registros.
 
 ### 5.5 Levantar el proyecto
 
+Si seguiste el paso anterior dentro de `apps/ventasfix-api`, vuelve
+primero a la raíz del repo:
+
+```bash
+cd ../..
+```
+
 Con un solo comando, desde la raíz del repo:
 
 ```bash
