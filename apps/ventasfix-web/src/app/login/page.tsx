@@ -30,7 +30,6 @@ export default function LoginPage() {
       }
 
       router.push("/");
-      router.refresh();
     } catch {
       setError("No se pudo contactar el servidor");
       setLoading(false);
