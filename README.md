@@ -335,6 +335,23 @@ ante la cancelación de un fetch en vuelo por cambio de página — la
 navegación siempre completa correctamente (verificado con pruebas de
 navegación agresiva en dev y producción), no requiere ninguna acción.
 
+**Ventana de transición post-login sin sidebar.** Justo después de un
+login exitoso, la navegación pasa por una página stub (`/`, fuera del
+layout protegido) que redirige server-side a `/dashboard` — en esa
+fracción de segundo, el sidebar todavía no existe, así que un clic ahí
+no navega a ningún lado; lo que se percibe después es la redirección
+que el login ya había puesto en marcha, terminando en `/dashboard` por
+su cuenta. Se eliminó un `router.refresh()` redundante que duplicaba
+el fetch de datos del dashboard y ensanchaba esta ventana, pero no
+puede cerrarse del todo: siempre existe algún intervalo entre el
+submit del login y que el sidebar aparezca, dado que hay un salto real
+vía `redirect()` server-side. El botón "Iniciar sesión" queda
+deshabilitado durante toda la transición, cubriendo el escenario
+realista de un clic repetido por impaciencia; un clic cronometrado al
+milisegundo exacto en que la URL cambia (fuera de cualquier
+interacción humana normal) sigue sin encontrar el sidebar, por diseño
+estructural de la transición, no por un bug de código.
+
 ## 5. Instalación y ejecución local
 
 ### 5.1 Requisitos previos
