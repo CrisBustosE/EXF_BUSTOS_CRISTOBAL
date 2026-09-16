@@ -352,6 +352,24 @@ milisegundo exacto en que la URL cambia (fuera de cualquier
 interacción humana normal) sigue sin encontrar el sidebar, por diseño
 estructural de la transición, no por un bug de código.
 
+**Navegación ocasionalmente redirige a Dashboard en la primera visita
+a una ruta bajo `next dev`.** La primera vez que se visita una ruta
+protegida en una sesión de desarrollo (ej. Usuarios o Productos recién
+después de un `npm run dev` fresco), un clic en el sidebar puede
+aterrizar en `/dashboard` en vez de la ruta esperada. Investigado a
+fondo: coincide exactamente con la aparición de un hot-update de
+webpack (Fast Refresh recompilando esa ruta por primera vez) en vuelo
+durante la navegación — el Fast Refresh parece disparar un re-fetch
+implícito del árbol de Server Components actualmente visible
+(Dashboard), que puede ganar la carrera contra la navegación del
+usuario en una ventana angosta y no determinística. Confirmado
+exclusivo de desarrollo: 3 corridas completas (9 navegaciones) en
+producción (`next start`, sin Fast Refresh) resultaron limpias, sin
+ningún rebote. No afecta producción ni el comportamiento real del
+sistema — solo la experiencia de desarrollo local bajo `next dev`. Un
+segundo clic en la ruta deseada siempre la carga correctamente
+(el chunk ya quedó compilado).
+
 ## 5. Instalación y ejecución local
 
 ### 5.1 Requisitos previos
