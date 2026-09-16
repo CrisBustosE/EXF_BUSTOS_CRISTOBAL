@@ -504,6 +504,19 @@ cd apps/ventasfix-api && npm run dev
 cd apps/ventasfix-web && npm run dev
 ```
 
+### 5.6 Acceso
+
+Con el proyecto corriendo, abre http://localhost:3000 e inicia sesión
+con el usuario administrador creado por el seed:
+
+| Campo | Valor |
+|---|---|
+| Email | `admin@ventasfix.cl` |
+| Password | `Admin123!` |
+
+(El seed también crea 2 usuarios adicionales, 5 productos y 4
+clientes de ejemplo — ver detalle completo en la sección 5.4.)
+
 ## 6. Evidencia de funcionamiento
 
 Todas las capturas corresponden al estado del proyecto tras correr el
